@@ -1,15 +1,20 @@
 import React, {useEffect, useState} from 'react';
-import {jwtDecode} from "jwt-decode";
-import {AddPromotion} from "./component/AddPromotion";
-import {UpdatePromotion} from './component/UpdatePromotion'
+import {jwtDecode} from 'jwt-decode';
+import {AddPromotion} from './component/AddPromotion';
+import {UpdatePromotion} from './component/UpdatePromotion';
+import {Table, Button, message} from 'antd';
+
 
 const headers = localStorage.getItem('token');
 
 interface PromotionData {
-    promotionId: string;
-    promotionStartDate: string;
-    promotionEndDate: string;
-    promotionName: string;
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    discountPercent: number;
+    quantity: number;
+    code: string;
     managerId: string;
 }
 
@@ -18,37 +23,41 @@ export const Promotion: React.FC = () => {
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [formData, setFormData] = useState<PromotionData>({
-        promotionId: '',
-        promotionStartDate: '',
-        promotionEndDate: '',
-        promotionName: '',
-        managerId: '',
+        id: '',
+        name: '',
+        startDate: '',
+        endDate: '',
+        discountPercent: 0,
+        quantity: 0,
+        code: '',
+        managerId: ''
     });
 
     const toggleAddModal = () => {
         setFormData({
-            promotionId: '',
-            promotionStartDate: '',
-            promotionEndDate: '',
-            promotionName: '',
-            managerId: '',
+            id: '',
+            name: '',
+            startDate: '',
+            endDate: '',
+            discountPercent: 0,
+            quantity: 0,
+            code: '',
+            managerId: ''
         });
         setIsAddingNew(!isAddingNew);
-    }
+    };
 
     const toggleUpdateModal = () => {
         setIsUpdating(false);
     };
 
-
     useEffect(() => {
         fetchPromotions();
     }, []);
 
-
     const fetchPromotions = async () => {
         try {
-            const response = await fetch('http://localhost:8888/manage/promotion/get-all', {
+            const response = await fetch('https://deploy-be-b176a8ceb318.herokuapp.com/manage/promotion/get-all', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${headers}`
@@ -63,15 +72,14 @@ export const Promotion: React.FC = () => {
 
             if (headers != null) {
                 const data = jwtDecode(headers) as {
-                    id: string
-                }
-                setFormData({...formData, managerId: data.id})
+                    id: string;
+                };
+                setFormData({...formData, managerId: data.id});
             }
         } catch (error) {
             console.error('Error fetching promotions: ', error);
         }
     };
-
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
         const {name, value} = e.target;
@@ -81,7 +89,7 @@ export const Promotion: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:8888/manage/promotion/create', {
+            const response = await fetch('https://deploy-be-b176a8ceb318.herokuapp.com/manage/promotion/create', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -91,18 +99,21 @@ export const Promotion: React.FC = () => {
             });
             if (response.ok) {
                 setIsAddingNew(false);
+                fetchPromotions();
             } else {
                 console.error('Failed to create promotion');
+                message.success('Promotion created successfully');
             }
         } catch (error) {
             console.error('Error creating promotion: ', error);
+            message.error('Fail to created promotion');
         }
     };
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await fetch('http://localhost:8888/manage/promotion/update ', {
+            const response = await fetch('https://deploy-be-b176a8ceb318.herokuapp.com/manage/promotion/update', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -113,26 +124,29 @@ export const Promotion: React.FC = () => {
             if (response.ok) {
                 setIsUpdating(false);
                 fetchPromotions();
+                message.success('Promotion updated successfully');
             } else {
                 console.error('Failed to update promotion');
+                message.error('Failed to update promotion');
             }
         } catch (error) {
-            console.error('Error update promotion: ', error);
+            console.error('Error updating promotion: ', error);
+            message.error('Failed to update promotion');
         }
     };
 
-
     const handleEdit = (promotionId: string) => {
-        const promotionToEdit = dataSource.find(promotion => promotion.promotionId === promotionId);
+        const promotionToEdit = dataSource.find(promotion => promotion.id === promotionId);
         if (promotionToEdit) {
             setFormData(promotionToEdit);
             setIsUpdating(true);
+            console.log(promotionToEdit)
         }
     };
 
     const handleDelete = async (promotionId: string) => {
         try {
-            const response = await fetch(`http://localhost:8888/manage/promotion/delete/${promotionId}`, {
+            const response = await fetch(`https://deploy-be-b176a8ceb318.herokuapp.com/manage/promotion/delete/${promotionId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${headers}`
@@ -148,63 +162,90 @@ export const Promotion: React.FC = () => {
         }
     };
 
+    const columns = [
+        {
+            title: 'Promotion Id',
+            dataIndex: 'id',
+            key: 'id',
+        },
+        {
+            title: 'Promotion Name',
+            dataIndex: 'name',
+            key: 'name',
+        },
+        {
+            title: 'Discount Code',
+            dataIndex: 'code',
+            key: 'code',
+        },
+        {
+            title: 'Start Date',
+            dataIndex: 'startDate',
+            key: 'startDate',
+            render: (text: string) => text.substring(0, 10),
+        },
+        {
+            title: 'End Date',
+            dataIndex: 'endDate',
+            key: 'endDate',
+            render: (text: string) => text.substring(0, 10),
+        },
+        {
+            title: 'Discount',
+            dataIndex: 'discountPercent',
+            key: 'discountPercent',
+            render: (text: number) => `${text}%`,
+        },
+        {
+            title: 'Quantity',
+            dataIndex: 'quantity',
+            key: 'quantity',
+        },
+        {
+            title: 'ManagerId',
+            dataIndex: 'managerId',
+            key: 'managerId',
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (record: PromotionData) => (
+                <>
+                    <Button onClick={() => handleEdit(record.id)} type="primary" className="me-2">
+                        Edit
+                    </Button>
+                    <Button onClick={() => handleDelete(record.id)}>
+                        Delete
+                    </Button>
+                </>
+            ),
+        },
+
+    ];
+
     return (
         <div className="container mt-5">
             <div className="mb-4 d-flex justify-content-between align-items-center">
                 <h2 className="text-dark">Promotions</h2>
-                <button onClick={() => setIsAddingNew(true)} className="btn btn-primary">
+                <Button onClick={toggleAddModal} type="primary">
                     New Promotion
-                </button>
+                </Button>
             </div>
-
-            <div className="table-responsive">
-                <table className="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>Promotion Id</th>
-                        <th>Promotion Name</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {dataSource.map((promotion) => (
-                        <tr key={promotion.promotionId}>
-                            <td>{promotion.promotionId}</td>
-                            <td>{promotion.promotionName}</td>
-                            <td>{promotion.promotionStartDate.substring(0, 10)}</td>
-                            <td>{promotion.promotionEndDate.substring(0, 10)}</td>
-                            <td>
-                                <button onClick={() => handleEdit(promotion.promotionId)}
-                                        className="btn btn-sm btn-primary me-2">
-                                    Edit
-                                </button>
-                                <button onClick={() => handleDelete(promotion.promotionId)}
-                                        className="btn btn-sm btn-danger">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-                <AddPromotion
-                    isOpen={isAddingNew}
-                    onClose={toggleAddModal}
-                    onSubmit={handleSubmit}
-                    formData={formData}
-                    handleChange={handleChange}
-                />
-                <UpdatePromotion
-                    isOpen={isUpdating}
-                    onClose={toggleUpdateModal}
-                    onSubmit={handleUpdate}
-                    formData={formData}
-                    handleChange={handleChange}
-                />
-            </div>
+            <Table dataSource={dataSource} columns={columns} rowKey="promotionId"/>
+            <AddPromotion
+                isOpen={isAddingNew}
+                onClose={toggleAddModal}
+                onSubmit={handleSubmit}
+                formData={formData}
+                handleChange={handleChange}
+            />
+            <UpdatePromotion
+                isOpen={isUpdating}
+                onClose={toggleUpdateModal}
+                onSubmit={handleUpdate}
+                formData={formData}
+                handleChange={handleChange}
+            />
         </div>
     );
 };
-

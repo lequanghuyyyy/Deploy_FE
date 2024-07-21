@@ -1,4 +1,4 @@
-import {Button, Dropdown, Layout, Menu, Space} from 'antd';
+import {Button, Dropdown, Layout, Menu, message, Space} from 'antd';
 import {NavLink} from 'react-router-dom';
 import {UserOutlined} from '@ant-design/icons';
 import React, {useEffect, useState} from 'react';
@@ -10,7 +10,7 @@ const {Header} = Layout;
 const menu = (handleLogout: any) => (
     <Menu>
         <Menu.Item key="0">
-            <NavLink to="/myAccount">Account</NavLink>
+            <NavLink style={{textDecoration: 'none'}} to="/myaccount">Account</NavLink>
         </Menu.Item>
         <Menu.Item key="1" onClick={handleLogout}>
             Log out
@@ -49,23 +49,27 @@ export const Navbar = () => {
     const handleLogout = () => {
         setIsLogin(false);
         localStorage.removeItem('token');
+        localStorage.removeItem('promoCode');
+        message.success('Logout successful!');
     };
 
     return (
-        <div style={{marginBottom: '153px'}}>
-            <div className="logo-container">
+        <div style={{marginBottom: '142px'}}>
+            <div style={{height: 78}} className="logo-container">
                 <NavLink to="/home"
                          style={{
                              fontFamily: 'Petit Formal Script, cursive',
                              textDecoration: 'none',
-                             fontSize: '40px',
+                             fontSize: '30px',
                              color: 'white',
                          }}>
+                    <img src={'./logo192.png'} style={{width: '70px', height: '70px'}}/>
                     Bridgerton
                 </NavLink>
             </div>
             <Header className={`custom-header ${showNavbar ? 'visible' : 'hidden'}`}>
-                <Space size={60} className="nav-links" style={{justifyContent: 'center', flex: 1, marginLeft: '70px'}}>
+                <Space size={30} className="nav-links"
+                       style={{justifyContent: 'center', flex: 1, marginLeft: '140px'}}>
                     <NavLink className="nav-link" to="/home">
                         Home
                     </NavLink>
@@ -78,8 +82,8 @@ export const Navbar = () => {
                     <NavLink className="nav-link" to="/contactus">
                         Contact Us
                     </NavLink>
-                    <NavLink className="nav-link" to="/order-success">
-                        Order Success
+                    <NavLink className="nav-link" to="/diamond-education">
+                        Diamond Education
                     </NavLink>
                 </Space>
                 <Space>
@@ -88,7 +92,8 @@ export const Navbar = () => {
                             <Button shape="circle" icon={<UserOutlined/>} className="user-icon"/>
                         </Dropdown>
                     ) : (
-                        <NavLink className="login-link" to="/login">
+                        <NavLink style={{fontFamily: 'Petit Formal Script, cursive'}} className="login-link"
+                                 to="/login">
                             Sign in
                         </NavLink>
                     )}
@@ -96,5 +101,6 @@ export const Navbar = () => {
                 </Space>
             </Header>
         </div>
+
     );
 };

@@ -13,29 +13,38 @@ import {ResetPassword} from "./Auth/ResetPassword";
 import {DiamondPricePage} from "./layouts/DiamondPrice/DiamondPricePage";
 import Checkout from "./layouts/CartPage/components/Checkout";
 import {SearchProductsPage} from "./layouts/SearchProductsPage/SearchProductsPage";
-import {Table} from "./layouts/dashboard/Table";
+import {AccountTable} from "./layouts/Admin/AccountTable";
 import {jwtDecode} from "jwt-decode";
 import ContactUs from "./layouts/ContactUs/ContactUs";
 import {SaleStaffPage} from "./layouts/SaleStaff/SaleStaffPage";
-import {OrderSuccessPage} from "./layouts/OrderSuccessPage/OrderSuccessPage";
-import {SideBar} from "./layouts/Manager/component/NavBar";
+import OrderSuccessPage from "./layouts/OrderSuccessPage/OrderSuccessPage";
+import OrderDetail from "./layouts/SaleStaff/component/OrderDetail";
+import DeliveryStaff from "./layouts/DeliveryStaff/DeliveryStaff";
+import {SideBar} from "./layouts/Manager/SideBar";
 import {Promotion} from "./layouts/Manager/Promotion";
 import {Product} from "./layouts/Manager/Product";
 import {Diamond} from "./layouts/Manager/Diamond";
-
+import Dashboard from "./layouts/Manager/Dashboard";
+import Account from "./layouts/MyAccount/Account";
+import {InformationAccount} from "./layouts/MyAccount/InformationAccount";
+import MyOrders from "./layouts/MyAccount/MyOrders";
+import ChangePassword from "./layouts/MyAccount/ChangePassword";
+import MyOrderDetail from "./layouts/MyAccount/MyOrderDetail";
+import OrderDeliveryDetail from "./layouts/DeliveryStaff/OrderDeliveryDetail";
+import {DiamondEducation} from "./layouts/HomePage/component/DiamondEducation";
 
 export const App = () => {
     const [token, setToken] = React.useState<string | undefined>();
 
     useEffect(() => {
-        const data = localStorage.getItem('token');
+const data = localStorage.getItem('token');
+    if (data) {
+        const decodedToken = jwtDecode(data) as { role: string };
+        setToken(decodedToken.role);
 
-        if (data) {
-            const decodedToken = jwtDecode(data) as { role: string };
-            setToken(decodedToken.role);
-        } else {
-            setToken(undefined);
-        }
+    } else {
+        setToken(undefined);
+    }
     }, []);
 
     return (
@@ -45,6 +54,9 @@ export const App = () => {
                     {token === undefined && (
                         <div className='flex-grow-1 w-100'>
                             <Navbar/>
+                            <Route path='/diamond-education'>
+                            <DiamondEducation/>
+                        </Route>
                             <Route path='/' exact>
                                 <HomePage/>
                             </Route>
@@ -78,7 +90,9 @@ export const App = () => {
                             <Route path='/reset-password'>
                                 <ResetPassword/>
                             </Route>
-
+                            <Route path='/ordersuccess'>
+                                <OrderSuccessPage/>
+                            </Route>
                             <Footer/>
                         </div>
                     )
@@ -86,15 +100,21 @@ export const App = () => {
                     {token === 'CUSTOMER' && (
                         <div className='flex-grow-1 w-100'>
                             <Navbar/>
-                            <Redirect from='/' to='/home' exact/>
+
+                            <Route path='/diamond-education'>
+                                <DiamondEducation/>
+                            </Route>
+                            <Route path='/' exact>
+                                <HomePage/>
+                            </Route>
+                            <Route path='/home'>
+                                <HomePage/>
+                            </Route>
                             <Route path='/cart'>
                                 <CartPage/>
                             </Route>
                             <Route path='/checkout'>
                                 <Checkout/>
-                            </Route>
-                            <Route path='/home'>
-                                <HomePage/>
                             </Route>
                             <Route path='/shop'>
                                 <SearchProductsPage/>
@@ -120,32 +140,50 @@ export const App = () => {
                             <Route path='/reset-password'>
                                 <ResetPassword/>
                             </Route>
-                            <Route path='/order-success'>
+                            <Route path='/ordersuccess'>
                                 <OrderSuccessPage/>
                             </Route>
-                            
+                            <Switch>
+                                <Route path='/myaccount'>
+                                    <Account>
+                                        <InformationAccount />
+                                    </Account>
+                                </Route>
+                                <Route path='/myorders'>
+                                    <Account>
+                                        <MyOrders />
+                                    </Account>
+                                </Route>
+                                <Route path='/myorderdetail/:orderId'>
+                                    <Account>
+                                        <MyOrderDetail />
+                                    </Account>
+                                </Route>
+                                <Route path='/changepassword'>
+                                    <Account>
+                                        <ChangePassword />
+                                    </Account>
+                                </Route>
+                            </Switch>
                             <Footer/>
                         </div>
                     )
-
-
                     }
-
-
                     {token === 'ADMIN' && (
                         <>
-                            <Redirect from='/' to='/admin' exact/>
                             <Route path='/admin'>
-                                <Table/>
+                                <AccountTable/>
                             </Route>
                         </>
                     )}
                     {token === 'MANAGER' && (
                         <>
-                            <SideBar/>
-                            <Redirect from='/' to='/diamond' exact/>
+                            <SideBar>
                             <Route path='/promotion'>
                                 <Promotion/>
+                            </Route>
+                            <Route path='/dashboard'>
+                                <Dashboard/>
                             </Route>
                             <Route path='/product'>
                                 <Product/>
@@ -153,6 +191,7 @@ export const App = () => {
                             <Route path='/diamond'>
                                 <Diamond/>
                             </Route>
+                            </SideBar>
                         </>
                     )}
                     {token === 'SALE_STAFF' && (
@@ -161,17 +200,24 @@ export const App = () => {
                             <Route path='/salestaff'>
                                 <SaleStaffPage/>
                             </Route>
+                            <Route path='/orderdetail/:orderId'>
+                                <OrderDetail/>
+                            </Route>
                         </>
                     )}
                     {token === 'DELIVERY_STAFF' && (
                         <>
-                            <Redirect from='/' to='/' exact/>
+                            <Redirect from='/' to='/deliverystaff' exact/>
+                            <Route path='/deliverystaff'>
+                                <DeliveryStaff/>
+                            </Route>
+                            <Route path='/deliverydetailorder/:orderId'>
+                                <OrderDeliveryDetail/>
+                            </Route>
                         </>
                     )}
                 </Switch>
             </Router>
-
         </div>
     );
 };
-            

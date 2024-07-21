@@ -13,8 +13,8 @@ export const CarouselProduct = () => {
 
 
     useEffect(() => {
-        const fetchProducts = async () => {
-            const baseUrl: string = "http://localhost:8888/home";
+            const fetchProducts = async () => {
+            const baseUrl: string = "https://deploy-be-b176a8ceb318.herokuapp.com/home";
             const url: string = `${baseUrl}`;
             const response = await fetch(url);
             if (!response.ok) {
@@ -22,6 +22,7 @@ export const CarouselProduct = () => {
             }
             const responseJson = await response.json();
             const responseData = responseJson.content;
+            console.log(responseData);
             const loadedProducts: ProductModel[] = [];
             for (const key in responseData) {
                 loadedProducts.push({
@@ -37,7 +38,10 @@ export const CarouselProduct = () => {
                     image4: responseData[key].image4,
                     categoryId: responseData[key].categoryId,
                     diamondId: responseData[key].diamondId,
-                    shellId: responseData[key].shellId
+                    shellId: responseData[key].shellId,
+                    certificateImage: responseData[key].certificateImage,
+                    warrantyImage: responseData[key].warrantyImage,
+
                 });
             }
             setProducts(loadedProducts);
@@ -82,9 +86,9 @@ export const CarouselProduct = () => {
         }
     }
     return (
-        <div className='container mt-5' style={{height: 550}}>
+        <div className='container mt-5' style={{height: 450}}>
             <div className='homepage-carousel-title'>
-                <h1 style={{fontSize: '45px'}} className='custom-heading'>New Products</h1>
+                <h1 style={{fontSize: '45px', fontFamily: 'Playfair Display', color: '#001529', fontWeight: 'bold'}}>New Products</h1>
             </div>
             <Carousel responsive={responsive}>
                 {product.slice(0, 10).map((product) => (

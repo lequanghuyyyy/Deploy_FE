@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from "react";
 import ProductModel from "../../models/ProductModel";
 import {SpinnerLoading} from "../Utils/SpinnerLoading";
-import {StarsReview} from "../Utils/StarsReview";
 import DiamondTable from "./DiamondAndShellTable/DiamondTable";
 import ShellTable from "./DiamondAndShellTable/ShellTable";
 import SizeModel from "../../models/SizeModel";
 import Carousel from "react-multi-carousel";
 import {SimilarItems} from "./component/SimilarItems";
+import {Button, message, Modal} from "antd";
 
 export const ProductCheckoutPage = () => {
     const [suggest, setSuggest] = useState<ProductModel[]>([]);
@@ -17,6 +17,23 @@ export const ProductCheckoutPage = () => {
     const [quantity, setQuantity] = useState<number>(1);
     const [selectedSize, setSelectedSize] = useState<SizeModel>();
     const [sizeError, setSizeError] = useState<string | null>(null);
+    const [outOfStock, setOutOfStock] = useState(false);
+    const [visible, setVisible] = useState(false);
+    const [imageUrl, setImageUrl] = useState<string | undefined>();
+
+    const showModal = (url: string | undefined) => {
+        setImageUrl(url);
+        setVisible(true);
+        console.log(url);
+    };
+
+    const handleOk = () => {
+        setVisible(false);
+    };
+
+    const handleCancel = () => {
+        setVisible(false);
+    };
 
     const token = localStorage.getItem("token");
     const headers = {
@@ -29,13 +46,14 @@ export const ProductCheckoutPage = () => {
 
     useEffect(() => {
         const fetchProduct = async () => {
-            const baseUrl: string = `http://localhost:8888/product/${productId}`;
+            window.scrollTo(0, 0)
+            const baseUrl: string = `https://deploy-be-b176a8ceb318.herokuapp.com/product/${productId}`;
             const url: string = `${baseUrl}?page=0&size=10`;
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error("Something went wrong!");
             }
-
+            console.log(baseUrl)
             const responseJson = await response.json();
             const loadedProduct: ProductModel = {
                 productId: responseJson.productId,
@@ -51,9 +69,11 @@ export const ProductCheckoutPage = () => {
                 categoryId: responseJson.categoryId,
                 diamondId: responseJson.diamondId,
                 shellId: responseJson.shellId,
+                certificateImage: responseJson.certificateImage,
+                warrantyImage: responseJson.warrantyImage,
             };
 
-            const baseUrl2: string = "http://localhost:8888/home";
+            const baseUrl2: string = "https://deploy-be-b176a8ceb318.herokuapp.com/home";
             const url2: string = `${baseUrl2}?page=0&size=10`;
             const response2 = await fetch(url2);
             if (!response2.ok) {
@@ -76,58 +96,62 @@ export const ProductCheckoutPage = () => {
                     image4: responseData[key].image4,
                     categoryId: responseData[key].categoryId,
                     diamondId: responseData[key].diamondId,
-                    shellId: responseData[key].shellId
+                    shellId: responseData[key].shellId,
+                    certificateImage: responseData[key].certificateImage,
+                    warrantyImage: responseData[key].warrantyImage,
                 });
-                console.log(responseData);
             }
 
             setSuggest(loadedProducts);
             setIsLoading(false);
-
             setProduct(loadedProduct);
             setSelectedImage(responseJson.image1);
             setIsLoading(false);
+
+            if (loadedProduct.stockQuantity === 0) {
+                setOutOfStock(true)
+            }
+
         };
         fetchProduct().catch((error: any) => {
             setIsLoading(false);
             setHttpError(error.message);
             console.log(error);
         });
-    }, []);
+    }, [productId]);
+
 
     useEffect(() => {
-
-        const fetchSize = async () => {
-            if (!product || !product.categoryId) return;
-            const baseUrl: string = `http://localhost:8888/sizes/${product?.categoryId}`;
-            const url: string = `${baseUrl}`;
-            const response = await fetch(url, {headers: headers});
-            if (!response.ok) {
-                throw new Error('Something went wrong!');
-            }
-
-            const responseJson = await response.json();
-            const loadedSize: SizeModel[] = [];
-
-            for (const key in responseJson) {
-                loadedSize.push({
-                    sizeId: responseJson[key].sizeId,
-                    valueSize: responseJson[key].valueSize,
-                    categoryId: responseJson[key].categoryId
-                });
-            }
-
-            setSize(loadedSize);
-            console.log(responseJson);
-            setIsLoading(false);
-        };
-        fetchSize().catch((error: any) => {
-            setIsLoading(false);
-            setHttpError(error.message);
-            console.log(error);
-        })
+        fetchSize();
     }, [product]);
+    const fetchSize = async () => {
+        if (!product || !product.categoryId) return;
+        const baseUrl: string = `https://deploy-be-b176a8ceb318.herokuapp.com/sizes/${product?.categoryId}`;
+        const url: string = `${baseUrl}`;
+        const response = await fetch(url, {headers: headers});
+        if (!response.ok) {
+            throw new Error('Something went wrong!');
+        }
 
+        const responseJson = await response.json();
+        const loadedSize: SizeModel[] = [];
+
+        for (const key in responseJson) {
+            loadedSize.push({
+                sizeId: responseJson[key].sizeId,
+                valueSize: responseJson[key].valueSize,
+                categoryId: responseJson[key].categoryId
+            });
+        }
+
+        setSize(loadedSize);
+        setIsLoading(false);
+    };
+    fetchSize().catch((error: any) => {
+        setIsLoading(false);
+        setHttpError(error.message);
+        console.log(error);
+    })
     const addToCartHandler = async () => {
         if (!selectedSize) {
             setSizeError('Please select a size.');
@@ -155,6 +179,7 @@ export const ProductCheckoutPage = () => {
             const event = new CustomEvent('cartUpdated');
             window.dispatchEvent(event);
         }
+        message.success('Added to cart successfully');
     };
 
     if (isLoading) {
@@ -182,9 +207,9 @@ export const ProductCheckoutPage = () => {
         console.log(selectedSize)
     };
 
+
     const responsive = {
         superLargeDesktop: {
-            // the naming can be any, depends on you.
             breakpoint: {max: 4000, min: 3000},
             items: 5
         },
@@ -207,24 +232,16 @@ export const ProductCheckoutPage = () => {
             <div className="container d-none d-lg-block w-1000">
                 <div className="row mt-5">
                     <div className="col-sm-2 col-md-6 text-center">
-                        {selectedImage ? (
-                            <img
-                                src={`http://localhost:8888/product/load/${selectedImage}.jpg`}
-                                style={{width: "455px", height: "390px", border: '1px solid black'}}
-                                alt="product"
-                            />
-                        ) : (
-                            <img
-                                src={require("./../../Images/PublicImages/hm13-slider-1.png")}
-                                className="w-auto h-100 product-image"
-                                alt="product"
-                            />
-                        )}
+                        <img
+                            src={selectedImage}
+                            style={{width: "455px", height: "390px", border: '1px solid black'}}
+                            alt="product"
+                        />
                         <div className="d-flex justify-content-center mt-3">
                             {product?.image1 && (
                                 <>
                                     <img
-                                        src={`http://localhost:8888/product/load/${product?.image1}.jpg`}
+                                        src={product?.image1}
                                         style={{
                                             width: "106px",
                                             height: "100px",
@@ -236,7 +253,7 @@ export const ProductCheckoutPage = () => {
                                         onClick={() => handleThumbnailClick(product?.image1)}
                                     />
                                     <img
-                                        src={`http://localhost:8888/product/load/${product?.image2}.jpg`}
+                                        src={product?.image2}
                                         style={{
                                             width: "106px",
                                             height: "100px",
@@ -248,7 +265,7 @@ export const ProductCheckoutPage = () => {
                                         onClick={() => handleThumbnailClick(product?.image2)}
                                     />
                                     <img
-                                        src={`http://localhost:8888/product/load/${product?.image3}.jpg`}
+                                        src={product?.image3}
                                         style={{
                                             width: "106px",
                                             height: "100px",
@@ -260,7 +277,7 @@ export const ProductCheckoutPage = () => {
                                         onClick={() => handleThumbnailClick(product?.image3)}
                                     />
                                     <img
-                                        src={`http://localhost:8888/product/load/${product?.image4}.jpg`}
+                                        src={product?.image4}
                                         style={{
                                             width: "106px",
                                             height: "100px",
@@ -290,25 +307,31 @@ export const ProductCheckoutPage = () => {
                                 Price: ${product?.price}
                             </p>
                             <p>{product?.description}</p>
-                            <p>Stock Quantity: {product?.stockQuantity}</p>
-                            <StarsReview rating={2.5} size={20}/>
-                            <div className="form-outline mt-3" style={{display: 'flex', alignItems: 'center'}}>
-                                <label className="form-label" htmlFor="typeNumber">Select Quantity:</label>
-                                <input
-                                    style={{width: '70px', marginLeft: '10px', outline: 'none', boxShadow: 'none'}}
-                                    type="number"
-                                    id="typeNumber"
-                                    className="form-control"
-                                    min="1"
-                                    value={quantity}
-                                    onChange={(e) => setQuantity(e.target.value as unknown as number)}
-                                />
-                            </div>
+                            <Button
+                                onClick={() => showModal(product?.certificateImage)}
+                                style={{marginRight: '10px'}}
+                            >
+                                <img style={{width: 50}}
+                                     src={'https://www.gia.edu/assets/img/global-header/desktop/gia-logo.svg'}/>
+                            </Button>
+
                             <div style={{display: 'flex', justifyContent: 'space-between'}}>
                                 <DiamondTable product={product}/>
                                 <ShellTable product={product}/>
                             </div>
-                            <select style={{width: '200px', outline: 'none', boxShadow: 'none'}} className="form-select"
+                            <a
+                                onClick={() => showModal('https://firebasestorage.googleapis.com/v0/b/bridgertondiamond.appspot.com/o/BridgertonDiamond%2Fz5624916933804_dcdb067c2dd16407a4cf0a91cecce6f6.jpg?alt=media&token=7007668e-e495-4692-93d8-d698a6ac01ab')}
+                                style={{
+                                    cursor: 'pointer',
+                                    color: 'black',
+                                    textDecoration: 'underline',
+                                    marginBottom: '10px'
+                                }}
+                            >
+                                Size Guide
+                            </a>
+                            <select style={{width: '200px', outline: 'none', boxShadow: 'none'}}
+                                    className="form-select"
                                     aria-label="Default select example"
                                     onChange={handleSizeSelect}>
                                 <option selected>Choose size...</option>
@@ -319,108 +342,37 @@ export const ProductCheckoutPage = () => {
                                 ))}
                             </select>
                             {sizeError && <p style={{color: 'red'}}>{sizeError}</p>}
-                            <button
-                                style={{borderRadius: '0'}}
-                                className="btn btn-success mt-3 w-100"
-                                onClick={addToCartHandler}
+
+                            {
+                                outOfStock ?
+                                    <h1
+                                        style={{borderRadius: '0', backgroundColor: 'red', textAlign: 'center'}}
+                                        className=" text-white mt-3 w-100"
+                                    >
+                                        OUT OF STOCK
+                                    </h1>
+                                    :
+                                    <button
+                                        style={{borderRadius: '0'}}
+                                        className="btn btn-success mt-3 w-100"
+                                        onClick={addToCartHandler}
+                                    >
+                                        ADD TO CART
+                                    </button>
+                            }
+                            <Modal
+                                title="Image"
+                                visible={visible}
+                                onOk={handleOk}
+                                onCancel={handleCancel}
+                                width={800}
                             >
-                                ADD TO CART
-                            </button>
+                                <img src={imageUrl} alt="Example" style={{width: '100%'}}/>
+                            </Modal>
                         </div>
                     </div>
                 </div>
             </div>
-
-            {/*<div className="container d-lg-none mt-5">*/}
-            {/*    <div className="d-flex justify-content-center align-items-center">*/}
-            {/*        {selectedImage ? (*/}
-            {/*            <img*/}
-            {/*                src={`http://localhost:8888/product/load/${selectedImage}.jpg`}*/}
-            {/*                className="product-image"*/}
-            {/*                alt="product"*/}
-            {/*                style={{width: "340px", height: "340px", border: "1px solid black"}}*/}
-            {/*            />*/}
-            {/*        ) : (*/}
-            {/*            <img*/}
-            {/*                src={require("./../../Images/PublicImages/hm13-slider-1.png")}*/}
-            {/*                className="w-auto h-100 product-image"*/}
-            {/*                alt="product"*/}
-            {/*            />*/}
-            {/*        )}*/}
-            {/*    </div>*/}
-            {/*    <div className="d-flex justify-content-center mt-3">*/}
-            {/*        {product?.image1 && (*/}
-            {/*            <>*/}
-            {/*                <img*/}
-            {/*                    src={`http://localhost:8888/product/load/${product?.image1}.jpg`}*/}
-            {/*                    style={{*/}
-            {/*                        width: "80px",*/}
-            {/*                        height: "80px",*/}
-            {/*                        margin: "5px",*/}
-            {/*                        cursor: "pointer",*/}
-            {/*                        border: "1px solid black"*/}
-            {/*                    }}*/}
-            {/*                    alt="thumbnail"*/}
-            {/*                    onClick={() => handleThumbnailClick(product.image1)}*/}
-            {/*                />*/}
-            {/*                <img*/}
-            {/*                    src={`http://localhost:8888/product/load/${product?.image2}.jpg`}*/}
-            {/*                    style={{*/}
-            {/*                        width: "80px",*/}
-            {/*                        height: "80px",*/}
-            {/*                        margin: "5px",*/}
-            {/*                        cursor: "pointer",*/}
-            {/*                        border: "1px solid black"*/}
-            {/*                    }}*/}
-            {/*                    alt="thumbnail"*/}
-            {/*                    onClick={() => handleThumbnailClick(product.image1)}*/}
-            {/*                />*/}
-            {/*                <img*/}
-            {/*                    src={`http://localhost:8888/product/load/${product?.image3}.jpg`}*/}
-            {/*                    style={{*/}
-            {/*                        width: "80px",*/}
-            {/*                        height: "80px", margin: "5px", cursor: "pointer", border: "1px solid black"*/}
-            {/*                    }}*/}
-            {/*                    alt="thumbnail"*/}
-            {/*                    onClick={() => handleThumbnailClick(product.image1)}*/}
-            {/*                />*/}
-            {/*                <img*/}
-            {/*                    src={`http://localhost:8888/product/load/${product?.image4}.jpg`}*/}
-            {/*                    style={{*/}
-            {/*                        width: "80px",*/}
-            {/*                        height: "80px",*/}
-            {/*                        margin: "5px",*/}
-            {/*                        cursor: "pointer",*/}
-            {/*                        border: "1px solid black"*/}
-            {/*                    }}*/}
-            {/*                    alt="thumbnail"*/}
-            {/*                    onClick={() => handleThumbnailClick(product.image1)}*/}
-            {/*                />*/}
-            {/*            </>*/}
-            {/*        )}*/}
-            {/*    </div>*/}
-
-            {/*    <div className="mt-4">*/}
-            {/*        <div className="ml-2">*/}
-            {/*            <h2>{product?.productName}</h2>*/}
-            {/*            <p style={{fontWeight: 'bolder', color: 'red'}}>Giá: ${product?.price}</p>*/}
-            {/*            <p>{product?.description}</p>*/}
-            {/*            <p>Stock Quantity: {product?.stockQuantity}</p>*/}
-            {/*            <StarsReview rating={2.5} size={20}/>*/}
-            {/*            <input*/}
-            {/*                style={{width: '70px', marginLeft: '10px'}}*/}
-            {/*                type="number"*/}
-            {/*                id="typeNumber"*/}
-            {/*                className="form-control"*/}
-            {/*                min="1"*/}
-            {/*                value={quantity}*/}
-            {/*                onChange={(e) => setQuantity(e.target.value as unknown as number)}*/}
-            {/*            />*/}
-            {/*        </div>*/}
-            {/*    </div>*/}
-            {/*    <hr/>*/}
-            {/*</div>*/}
-
             <>
                 <div className='container mt-5' style={{height: 550}}>
                     <div className='homepage-carousel-title'>

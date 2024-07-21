@@ -1,12 +1,11 @@
 import React, {useEffect, useState} from "react";
-import ProductModel from "../../models/ProductModel";
-import {ProductItem} from "./component/ProductItem";
-import {Paging} from "../Utils/Paging";
 import {SpinnerLoading} from "../Utils/SpinnerLoading";
 import {AddProduct} from "./component/AddProduct";
+import {Button, Image, message, Table, Pagination} from "antd";
+import ProductModel from "../../models/ProductModel";
 
 interface ProductData {
-    productId: string;
+    productId: number;
     collection: string;
     description: string;
     image1: File | string;
@@ -17,7 +16,10 @@ interface ProductData {
     productName: string;
     stockQuantity: number;
     categoryId: number;
+    diamondId: number;
     shellId: number;
+    warrantyImage: string,
+    certificateImage: string,
 }
 
 interface Diamond {
@@ -35,7 +37,6 @@ export const Product = () => {
     const [httpError, setHttpError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalAmountOfProducts, setTotalAmountOfProducts] = useState(0);
-    const [productsPerPage] = useState(8);
     const [totalPages, setTotalPages] = useState(0);
     const [search, setSearch] = useState('');
     const [searchUrl, setSearchUrl] = useState('');
@@ -43,8 +44,9 @@ export const Product = () => {
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
     const [diamonds, setDiamonds] = useState<Diamond[]>([]);
+    const [product, setProduct] = useState<ProductModel>();
     const [formData, setFormData] = useState<ProductData>({
-        productId: '',
+        productId: 0,
         collection: '',
         description: '',
         image1: '',
@@ -55,66 +57,75 @@ export const Product = () => {
         productName: '',
         stockQuantity: 0,
         categoryId: 0,
+        diamondId: 0,
         shellId: 0,
+        certificateImage: '',
+        warrantyImage: ''
     });
-    const [image1, setImage1] = useState<string | null>(null);
-    const [image2, setImage2] = useState<string | null>(null);
-    const [image3, setImage3] = useState<string | null>(null);
-    const [image4, setImage4] = useState<string | null>(null);
 
     const headers = localStorage.getItem('token');
 
     useEffect(() => {
-
         const fetchProducts = async () => {
-            const baseUrl: string = "http://localhost:8888/home";
+            const baseUrl: string = "https://deploy-be-b176a8ceb318.herokuapp.com/home";
             let url: string = '';
             if (searchUrl === '') {
-                url = `${baseUrl}/search-by-name?page=${currentPage - 1}&size=${productsPerPage}&keyword=${search}`;
+                url = `${baseUrl}/search-by-name?keyword=${search}&page=${currentPage - 1}`;
             } else {
-                let searchWithPage = searchUrl.replace('<pageNumber>', `${currentPage - 1}`);
-                url = baseUrl + searchWithPage;
+                url = `${baseUrl}${searchUrl}&page=${currentPage - 1}`;
             }
 
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${headers}`
-                }
-            });
-
-            const responseJson = await response.json();
-            const responseData = responseJson.content;
-            setTotalAmountOfProducts(responseJson.totalElements)
-            setTotalPages(responseJson.totalPages);
-
-            const loadedProducts: ProductModel[] = [];
-
-            for (const key in responseData) {
-                loadedProducts.push({
-                    productId: responseData[key].productId,
-                    productName: responseData[key].productName,
-                    price: responseData[key].price,
-                    stockQuantity: responseData[key].stockQuantity,
-                    collection: responseData[key].collection,
-                    description: responseData[key].description,
-                    image1: responseData[key].image1,
-                    image2: responseData[key].image2,
-                    image3: responseData[key].image3,
-                    image4: responseData[key].image4,
-                    categoryId: responseData[key].categoryId,
-                    diamondId: responseData[key].diamondId,
-                    shellId: responseData[key].shellId
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${headers}`
+                    }
                 });
+
+                if (!response.ok) {
+                    throw new Error('Something went wrong!');
+                }
+
+                const responseJson = await response.json();
+                const responseData = responseJson.content;
+                setTotalAmountOfProducts(responseJson.totalElements);
+                setTotalPages(responseJson.totalPages);
+
+                const loadedProducts: ProductModel[] = [];
+
+                for (const key in responseData) {
+                    loadedProducts.push({
+                        productId: responseData[key].productId,
+                        productName: responseData[key].productName,
+                        price: responseData[key].price,
+                        stockQuantity: responseData[key].stockQuantity,
+                        collection: responseData[key].collection,
+                        description: responseData[key].description,
+                        image1: responseData[key].image1,
+                        image2: responseData[key].image2,
+                        image3: responseData[key].image3,
+                        image4: responseData[key].image4,
+                        categoryId: responseData[key].categoryId,
+                        diamondId: responseData[key].diamondId,
+                        shellId: responseData[key].shellId,
+                        certificateImage: responseData[key].certificateImage,
+                        warrantyImage: responseData[key].warrantyImage,
+                    });
+                }
+                setProducts(loadedProducts);
+                setIsLoading(false);
+            } catch (error: any) {
+                setIsLoading(true);
+                message.error('Failed to fetch products');
             }
-            setProducts(loadedProducts);
-            setIsLoading(false);
         };
+
         fetchProducts().catch((error: any) => {
             setIsLoading(false);
             setHttpError(error.message);
-        })
-        window.scrollTo(0, 0);
+        });
     }, [currentPage, searchUrl]);
+
 
     if (isLoading) {
         return (
@@ -132,7 +143,7 @@ export const Product = () => {
 
     const toggleAddModal = () => {
         setFormData({
-            productId: '',
+            productId: 0,
             collection: '',
             description: '',
             image1: '',
@@ -143,124 +154,73 @@ export const Product = () => {
             productName: '',
             stockQuantity: 0,
             categoryId: 0,
+            diamondId: 0,
             shellId: 0,
+            certificateImage: '',
+            warrantyImage: ''
         });
         setIsAddingNew(!isAddingNew);
     }
 
-    ///////////////////////// NOTICE //////////////////////////
-    const getFileNameWithoutExtension = (file: File): string => {
-        const fileName = file.name.split('\\').pop()?.split('/').pop();
-        return fileName ? fileName.split('.').slice(0, -1).join('.') : '';
-    };
-
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, files} = e.target;
-        if (files && files.length > 0) {
-            const fileName = files[0].name;
-            console.log(name + ':    ' + files[0].name)
-            setFormData((prevFormData) => ({
-                ...prevFormData,
-                [name]: files[0],
-            }));
-
-            switch (name) {
-                case 'image1':
-                    setImage1(fileName);
-                    break;
-                case 'image2':
-                    setImage2(fileName);
-                    break;
-                case 'image3':
-                    setImage3(fileName);
-                    break;
-                case 'image4':
-                    setImage4(fileName);
-                    break;
-                default:
-                    break;
-            }
+        if (files && files[0]) {
+            setFormData({
+                ...formData,
+                [name]: files[0]
+            });
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent, product: ProductModel) => {
         e.preventDefault();
         try {
-            const formDataObj = new FormData();
-            if (formData.image1) formDataObj.append('files', formData.image1);
-            if (formData.image2) formDataObj.append('files', formData.image2);
-            if (formData.image3) formDataObj.append('files', formData.image3);
-            if (formData.image4) formDataObj.append('files', formData.image4);
+            const requestBody = {
+                productId: 0,
+                collection: product.collection,
+                description: product.description,
+                image1: product.image1,
+                image2: product.image2,
+                image3: product.image3,
+                image4: product.image4,
+                price: product.price,
+                productName: product.productName,
+                stockQuantity: product.stockQuantity,
+                categoryId: product.categoryId,
+                shellId: product.shellId,
+                certificateImage: product.certificateImage,
+                warrantyImage: product.warrantyImage,
+                diamondId: product.diamondId
+            }
 
-            const response = await fetch('http://localhost:8888/product/saveFile', {
+            const createProduct = await fetch('https://deploy-be-b176a8ceb318.herokuapp.com/product/add', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${headers}`,
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${headers}`
                 },
-                body: formDataObj,
+                body: JSON.stringify(requestBody)
             });
 
-            if (response.ok) {
-                console.log("Product save successfully");
-                const requestBody = {
-                    productId: '',
-                    collection: formData.collection,
-                    description: formData.description,
-                    image1: image1,
-                    image2: image2,
-                    image3: image3,
-                    image4: image4,
-                    price: formData.price,
-                    productName: formData.productName,
-                    stockQuantity: formData.stockQuantity,
-                    categoryId: formData.categoryId,
-                    shellId: formData.shellId,
-                }
-                const createProduct = await fetch('http://localhost:8888/product/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${headers}`
-                    },
-                    body: JSON.stringify(requestBody)
-                });
-                if (createProduct.ok) {
-                    setIsAddingNew(false);
-                } else {
-                    console.error('Failed to create promotion');
-                }
+            if (createProduct.ok) {
+                setIsAddingNew(false);
+                message.success('Product created successfully');
             } else {
-                console.error('Failed to save product');
-                return;
+                message.error('Failed to create product');
+                console.log(requestBody)
             }
 
-
         } catch (error) {
-            console.error('Error creating promotion: ', error);
+            console.error('Error creating product: ', error);
         }
     };
-
-    const handleCreateProduct = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('http://localhost:8888/manage/diamond'); // Địa chỉ API của bạn
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const data: Diamond[] = await response.json();
-            setDiamonds(data);
-        } catch (error) {
-            console.error('There was an error fetching the diamonds:', error);
-        }
-        
-    }
 
     const searchHandleChange = () => {
         setCurrentPage(1);
         if (search === '') {
             setSearchUrl('');
         } else {
-            setSearchUrl(`/search-by-name?keyword=${search}&page=<pageNumber>&size=${productsPerPage}`)
+            setSearchUrl(`/search-by-name?keyword=${search}`)
         }
         setSearchCategory('All Category')
     }
@@ -268,18 +228,19 @@ export const Product = () => {
     const searchCategoryHandleChange = (value: string) => {
         setCurrentPage(1);
         if (
-            value.toLowerCase() === 'engagement rings' ||
-            value.toLowerCase() === 'wedding bands' ||
-            value.toLowerCase() === 'men diamond ring' ||
-            value.toLowerCase() === 'necklaces' ||
-            value.toLowerCase() === 'earrings' ||
-            value.toLowerCase() === 'bracelets'
+            value === 'Engagement Rings' ||
+            value === 'Wedding Bands' ||
+            value === 'Women diamond ring' ||
+            value === 'Men diamond ring' ||
+            value === 'Diamond Necklaces' ||
+            value === 'Diamond Earrings' ||
+            value === 'Diamond Bracelets'
         ) {
             setSearchCategory(value);
-            setSearchUrl(`/by-category-sorted-by-price?categoryName=${value}&page=<pageNumber>&size=${productsPerPage}`)
+            setSearchUrl(`/by-category-sorted-by-price?categoryName=${value}`)
         } else {
-            setSearchCategory('All Category');
-            setSearchUrl(`?page=<pageNumber>&size=${productsPerPage}`);
+            setSearchCategory('All category');
+            setSearchUrl(``);
         }
     }
 
@@ -291,59 +252,88 @@ export const Product = () => {
         }));
     };
 
-
-    const handleDelete = async (promotionId: string) => {
-        try {
-            const response = await fetch(`http://localhost:8888/manage/promotion/delete/${promotionId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${headers}`
-                }
-            });
-            if (response.ok) {
-
-            } else {
-                console.error('Failed to delete promotion');
-            }
-        } catch (error) {
-            console.error('Error deleting promotion: ', error);
-        }
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
     };
-
-    const handleUpdate = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('http://localhost:8888/manage/promotion/update ', {
-                method: 'PUT',
+    const handleDelete = async (record: ProductModel) => {
+        console.log("Product ID: ", record.productId);
+        if (record) {
+            const body = {
+                id: record.productId
+            }
+            const response = await fetch(`https://deploy-be-b176a8ceb318.herokuapp.com/product/delete?id=${record.productId}`, {
+                method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${headers}`
                 },
-                body: JSON.stringify(formData)
+                // body: JSON.stringify(body)
             });
             if (response.ok) {
-                setIsUpdating(false);
+                message.success('Product deleted successfully')
+                setProducts(products.filter(product => product.productId !== record.productId));
             } else {
-                console.error('Failed to update promotion');
+                message.error('Fail to delete product')
             }
-        } catch (error) {
-            console.error('Error update promotion: ', error);
         }
     };
 
-
-    const indexOfLastProducts: number = currentPage * productsPerPage;
-    const indexOfFirstProduct: number = indexOfLastProducts - productsPerPage;
-    let lastItem = productsPerPage * currentPage <= totalAmountOfProducts ?
-        productsPerPage * currentPage : totalAmountOfProducts;
-
-    const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
-
-
+    const columns = [
+        {
+            title: 'Image',
+            dataIndex: 'image1',
+            key: 'image1',
+            render: (text: string) => (
+                <Image
+                    width={100}
+                    src={text}
+                    alt='product image'
+                />
+            ),
+        },
+        {
+            title: 'Product Name',
+            dataIndex: 'productName',
+            key: 'productName',
+        },
+        {
+            title: 'Price',
+            dataIndex: 'price',
+            key: 'price',
+            render: (text: number) => (
+                <span style={{fontWeight: 'bolder'}}>${text}</span>
+            ),
+        },
+        {
+            title: 'Description',
+            dataIndex: 'description',
+            key: 'description',
+            render: (text: string) => (
+                <span style={{textAlign: 'center'}}>{text}</span>
+            ),
+        },
+        {
+            title: 'Quantity',
+            dataIndex: 'stockQuantity',
+            key: 'stockQuantity',
+            render: (text: number) => (
+                <span>{text}</span>
+            ),
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (text: string, record: ProductModel) => (
+                <Button type="primary" onClick={() => handleDelete(record)} danger>
+                    Delete
+                </Button>
+            ),
+        },
+    ];
     return (
         <div>
             <div className='container'>
-                <div className="mb-4 mt-5 d-flex justify-content-between align-items-center">
+                <div className="mb-4 d-flex justify-content-between align-items-center">
                     <h2 className="text-dark">Product</h2>
                     <button onClick={() => setIsAddingNew(true)} className="btn btn-primary">
                         New Product
@@ -351,11 +341,16 @@ export const Product = () => {
                 </div>
                 <div className='row mt-5 ms-4'>
                     <div style={{width: '300px'}} className='col-6'>
-                        <div className='d-flex'>
-                            <input className='form-control me-2 w-auto' type='search'
-                                   placeholder='Search' aria-labelledby='Search'
-                                   onChange={e => setSearch(e.target.value)}/>
-                            <button className='btn btn-outline-dark' onClick={() => searchHandleChange()}>Search
+                        <div
+                            className='d-flex'>
+                            <input
+                                style={{borderRadius: '0', marginTop: 0}}
+                                className='form-control me-2 w-auto' type='search'
+                                placeholder='Search' aria-labelledby='Search'
+                                onChange={e => setSearch(e.target.value)}/>
+                            <button
+                                style={{borderRadius: '0', height: '38px'}}
+                                className='btn btn-outline-dark' onClick={() => searchHandleChange()}>Search
                             </button>
                         </div>
                     </div>
@@ -367,7 +362,7 @@ export const Product = () => {
                                 {searchCategory}
                             </button>
                             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <li onClick={() => searchCategoryHandleChange('All')}>
+                                <li onClick={() => searchCategoryHandleChange('All category')}>
                                     <a className="dropdown-item">
                                         All category
                                     </a>
@@ -376,32 +371,32 @@ export const Product = () => {
                                     <a className="dropdown-item">
                                         Engagement Rings </a>
                                 </li>
-                                <li onClick={() => searchCategoryHandleChange('wedding bands')}>
+                                <li onClick={() => searchCategoryHandleChange('Wedding Bands')}>
                                     <a className="dropdown-item">
                                         Wedding Bands
                                     </a>
                                 </li>
-                                <li onClick={() => searchCategoryHandleChange('men diamond ring')}>
+                                <li onClick={() => searchCategoryHandleChange('Men diamond ring')}>
                                     <a className="dropdown-item">
                                         Men diamond ring
                                     </a>
                                 </li>
-                                <li onClick={() => searchCategoryHandleChange('women diamond ring')}>
+                                <li onClick={() => searchCategoryHandleChange('Women diamond ring')}>
                                     <a className="dropdown-item">
                                         Women diamond ring
                                     </a>
                                 </li>
-                                <li onClick={() => searchCategoryHandleChange('necklaces')}>
+                                <li onClick={() => searchCategoryHandleChange('Diamond Necklaces')}>
                                     <a className="dropdown-item">
                                         Necklaces
                                     </a>
                                 </li>
-                                <li onClick={() => searchCategoryHandleChange('earrings')}>
+                                <li onClick={() => searchCategoryHandleChange('Diamond Earrings')}>
                                     <a className="dropdown-item">
                                         Earrings
                                     </a>
                                 </li>
-                                <li onClick={() => searchCategoryHandleChange('bracelets')}>
+                                <li onClick={() => searchCategoryHandleChange('Diamond Bracelets')}>
                                     <a className="dropdown-item">
                                         Bracelets
                                     </a>
@@ -409,24 +404,27 @@ export const Product = () => {
                             </ul>
                         </div>
                     </div>
+
                     {totalAmountOfProducts > 0 ?
                         <>
-                            <p></p>
-                            {products.map(product => (
-                                <ProductItem product={product} key={product.productId}/>
-                            ))}
+                            <Table className="mt-5" dataSource={products} columns={columns} rowKey="productId"
+
+                                   pagination={false}/>
+                            <Pagination
+                                current={currentPage}
+                                total={totalAmountOfProducts}
+                                pageSize={10}
+                                onChange={handlePageChange}
+                                showSizeChanger={false}
+
+                                style={{textAlign: 'end', marginTop: '20px'}}
+                            />
                         </>
                         :
                         <div className='m-5'>
                             <h3>Can't find what you are looking for?</h3>
-                            <a type='button' className='btn main-color btn-md px-4 me-md-2 fw-bold text-black' href='#'>Library
-                                Services</a>
                         </div>
                     }
-                    {totalPages > 1 &&
-                        <Paging currentPage={currentPage} totalPages={totalPages} paginate={paginate}/>
-                    }
-
                     <AddProduct
                         isOpen={isAddingNew}
                         onClose={toggleAddModal}
@@ -434,12 +432,9 @@ export const Product = () => {
                         formData={formData}
                         handleChange={handleChange}
                         handleFileChange={handleFileChange}
-
                     />
                 </div>
             </div>
         </div>
-
-
     );
 }
