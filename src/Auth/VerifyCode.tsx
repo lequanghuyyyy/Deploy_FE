@@ -35,13 +35,13 @@ export const VerifyCode = () => {
                     window.location.href = '/'
                 }
             )
-        }else {
+        } else {
             message.error('Change password successful!');
         }
     };
 
     return (
-        <div className="login-container d-flex justify-content-center align-items-center">
+        <div className="login-container d-flex justify-content-center align-items-start">
             <div className="login-register-container p-4 shadow-lg rounded-3"
                  style={{position: "relative", zIndex: 2}}>
                 <form className="form-container pt-1 pb-4 ps-4 pe-4"

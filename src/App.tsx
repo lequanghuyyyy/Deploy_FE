@@ -37,14 +37,14 @@ export const App = () => {
     const [token, setToken] = React.useState<string | undefined>();
 
     useEffect(() => {
-const data = localStorage.getItem('token');
-    if (data) {
-        const decodedToken = jwtDecode(data) as { role: string };
-        setToken(decodedToken.role);
+        const data = localStorage.getItem('token');
+        if (data) {
+            const decodedToken = jwtDecode(data) as { role: string };
+            setToken(decodedToken.role);
 
-    } else {
-        setToken(undefined);
-    }
+        } else {
+            setToken(undefined);
+        }
     }, []);
 
     return (
@@ -55,8 +55,8 @@ const data = localStorage.getItem('token');
                         <div className='flex-grow-1 w-100'>
                             <Navbar/>
                             <Route path='/diamond-education'>
-                            <DiamondEducation/>
-                        </Route>
+                                <DiamondEducation/>
+                            </Route>
                             <Route path='/' exact>
                                 <HomePage/>
                             </Route>
@@ -146,22 +146,22 @@ const data = localStorage.getItem('token');
                             <Switch>
                                 <Route path='/myaccount'>
                                     <Account>
-                                        <InformationAccount />
+                                        <InformationAccount/>
                                     </Account>
                                 </Route>
                                 <Route path='/myorders'>
                                     <Account>
-                                        <MyOrders />
+                                        <MyOrders/>
                                     </Account>
                                 </Route>
                                 <Route path='/myorderdetail/:orderId'>
                                     <Account>
-                                        <MyOrderDetail />
+                                        <MyOrderDetail/>
                                     </Account>
                                 </Route>
                                 <Route path='/changepassword'>
                                     <Account>
-                                        <ChangePassword />
+                                        <ChangePassword/>
                                     </Account>
                                 </Route>
                             </Switch>
@@ -179,18 +179,18 @@ const data = localStorage.getItem('token');
                     {token === 'MANAGER' && (
                         <>
                             <SideBar>
-                            <Route path='/promotion'>
-                                <Promotion/>
-                            </Route>
-                            <Route path='/dashboard'>
-                                <Dashboard/>
-                            </Route>
-                            <Route path='/product'>
-                                <Product/>
-                            </Route>
-                            <Route path='/diamond'>
-                                <Diamond/>
-                            </Route>
+                                <Route path='/promotion'>
+                                    <Promotion/>
+                                </Route>
+                                <Route path='/dashboard'>
+                                    <Dashboard/>
+                                </Route>
+                                <Route path='/product'>
+                                    <Product/>
+                                </Route>
+                                <Route path='/diamond'>
+                                    <Diamond/>
+                                </Route>
                             </SideBar>
                         </>
                     )}

@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from "react";
 import {SpinnerLoading} from "../Utils/SpinnerLoading";
 import {AddProduct} from "./component/AddProduct";
+import {UpdateProduct} from "./component/UpdateProduct";
 import {Button, Image, message, Table, Pagination} from "antd";
 import ProductModel from "../../models/ProductModel";
+
 
 interface ProductData {
     productId: number;
@@ -161,6 +163,81 @@ export const Product = () => {
         });
         setIsAddingNew(!isAddingNew);
     }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    const toggleUpdateModal = () => {
+        setFormData({
+            productId: 0,
+            collection: '',
+            description: '',
+            image1: '',
+            image2: '',
+            image3: '',
+            image4: '',
+            price: 0,
+            productName: '',
+            stockQuantity: 0,
+            categoryId: 0,
+            diamondId: 0,
+            shellId: 0,
+            certificateImage: '',
+            warrantyImage: ''
+        });
+        setIsUpdating(false)
+    }
+    const handleToEdit = (e: React.FormEvent, record: ProductModel) => {
+        const productToEdit = products.find(product => product.productId === record.productId);
+        if (productToEdit) {
+            setFormData(productToEdit);
+            setIsUpdating(!isUpdating);
+        }
+
+    }
+    const handleUpdate = async (e: React.FormEvent, product: ProductModel) => {
+        e.preventDefault();
+        try {
+            const requestBody = {
+                productId: product.productId,
+                collection: product.collection,
+                description: product.description,
+                image1: product.image1,
+                image2: product.image2,
+                image3: product.image3,
+                image4: product.image4,
+                price: product.price,
+                productName: product.productName,
+                stockQuantity: product.stockQuantity,
+                categoryId: product.categoryId,
+                shellId: product.shellId,
+                certificateImage: product.certificateImage,
+                warrantyImage: product.warrantyImage,
+                diamondId: product.diamondId
+            }
+
+            const createProduct = await fetch('https://deploy-be-b176a8ceb318.herokuapp.com/product/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${headers}`
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (createProduct.ok) {
+                setIsAddingNew(false);
+                message.success('Product update successfully');
+                setIsUpdating(false)
+            } else {
+                message.error('Failed to update product');
+                console.log(requestBody)
+                setIsUpdating(false)
+            }
+
+
+        } catch (error) {
+            console.error('Error update product: ', error);
+        }
+    };
+
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, files} = e.target;
@@ -255,6 +332,7 @@ export const Product = () => {
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
+
     const handleDelete = async (record: ProductModel) => {
         console.log("Product ID: ", record.productId);
         if (record) {
@@ -267,7 +345,6 @@ export const Product = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${headers}`
                 },
-                // body: JSON.stringify(body)
             });
             if (response.ok) {
                 message.success('Product deleted successfully')
@@ -324,9 +401,16 @@ export const Product = () => {
             title: 'Actions',
             key: 'actions',
             render: (text: string, record: ProductModel) => (
-                <Button type="primary" onClick={() => handleDelete(record)} danger>
-                    Delete
-                </Button>
+                <>
+                    <Button type="primary" onClick={() => handleDelete(record)} danger>
+                        Delete
+                    </Button>
+                    <Button type="primary" onClick={(event) => handleToEdit(event, record)} danger>
+                        Update
+                    </Button>
+                </>
+
+
             ),
         },
     ];
@@ -353,6 +437,7 @@ export const Product = () => {
                                 className='btn btn-outline-dark' onClick={() => searchHandleChange()}>Search
                             </button>
                         </div>
+
                     </div>
                     <div className='col-4'>
                         <div className='dropdown'>
@@ -429,6 +514,14 @@ export const Product = () => {
                         isOpen={isAddingNew}
                         onClose={toggleAddModal}
                         onSubmit={handleSubmit}
+                        formData={formData}
+                        handleChange={handleChange}
+                        handleFileChange={handleFileChange}
+                    />
+                    <UpdateProduct
+                        isOpen={isUpdating}
+                        onClose={toggleUpdateModal}
+                        onSubmit={handleUpdate}
                         formData={formData}
                         handleChange={handleChange}
                         handleFileChange={handleFileChange}
