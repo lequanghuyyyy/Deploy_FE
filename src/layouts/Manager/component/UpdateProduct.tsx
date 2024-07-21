@@ -138,7 +138,7 @@ export const UpdateProduct: React.FC<AddProductProps> = ({
             <div className="modal-dialog" style={{maxWidth: '100%'}}>
                 <div className="modal-content" style={{maxWidth: '80%', marginLeft: '11%'}}>
                     <div className="modal-header">
-                        <h5 className="modal-title">Add New Product</h5>
+                        <h5 className="modal-title">Update Product</h5>
                         <button type="button" className="btn-close" onClick={onClose}></button>
                     </div>
                     <form onSubmit={handleSubmit} encType="multipart/form-data">
