@@ -93,6 +93,7 @@ export const Product = () => {
                 setTotalAmountOfProducts(responseJson.totalElements);
                 setTotalPages(responseJson.totalPages);
 
+
                 const loadedProducts: ProductModel[] = [];
 
                 for (const key in responseData) {
@@ -126,6 +127,7 @@ export const Product = () => {
             setIsLoading(false);
             setHttpError(error.message);
         });
+
     }, [currentPage, searchUrl]);
 
 
@@ -226,6 +228,7 @@ export const Product = () => {
                 setIsAddingNew(false);
                 message.success('Product update successfully');
                 setIsUpdating(false)
+
             } else {
                 message.error('Failed to update product');
                 console.log(requestBody)

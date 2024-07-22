@@ -21,6 +21,7 @@ export const SearchProductsPage = () => {
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJodXlscXNlMTcxMjkzQGZwdC5lZHUudm4ifQ.FzAs3FrNbICbW9dUGZivmqNtMvUs7dh-fCgJy0EvluQ'
     }
     useEffect(() => {
+        window.scrollTo(0, 10)
         const fetchProducts = async () => {
             const baseUrl: string = "https://deploy-be-b176a8ceb318.herokuapp.com/home";
             let url: string = '';
@@ -136,10 +137,12 @@ export const SearchProductsPage = () => {
                     <div
                         style={{backgroundColor: '#F9F9F9'}}
                         className="col-4 col-md-6 container d-flex justify-content-center align-items-center custom-container">
-                        <div style={{marginLeft: '100px',marginRight: '100px'}} className="ml-2">
+                        <div style={{marginLeft: '100px', marginRight: '100px'}} className="ml-2">
                             <h1 className="custom-heading">Le Voyage Recommencé</h1>
-                            <p style={{marginTop:'20px'}} className="custom-paragraph-search">
-                                Our diamonds exemplify exceptional quality and timeless elegance. With brilliant cuts and flawless clarity, each piece reflects our dedication to perfection. Discover Bridgerton's refined beauty, where every gem tells a story of elegance and excellence.
+                            <p style={{marginTop: '20px'}} className="custom-paragraph-search">
+                                Our diamonds exemplify exceptional quality and timeless elegance. With brilliant cuts
+                                and flawless clarity, each piece reflects our dedication to perfection. Discover
+                                Bridgerton's refined beauty, where every gem tells a story of elegance and excellence.
                             </p>
                         </div>
                     </div>
@@ -172,7 +175,7 @@ export const SearchProductsPage = () => {
                             </button>
                             <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                 <li onClick={() => searchCategoryHandleChange('All')}>
-                                <a className="dropdown-item">
+                                    <a className="dropdown-item">
                                         All category
                                     </a>
                                 </li>

@@ -10,7 +10,8 @@ const OrderSuccessPage: React.FC = () => {
             <h1 className="order-success-title">Order Success</h1>
             <p className="order-success-message">Thank you for your purchase! Your order has been successfully
                 placed.</p>
-            <Link style={{marginBottom: "40px"}} to="/home" className="order-success-link">Go to Home</Link>
+            <Link style={{marginBottom: "40px"}} to="/home" className="order-success-link">Go to
+                Home</Link>
         </div>
     );
 };
