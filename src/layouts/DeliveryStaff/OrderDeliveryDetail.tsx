@@ -41,7 +41,6 @@ const OrderDetail: React.FC = (props) => {
                 userName: responseJson.data.userName,
                 products: responseJson.data.product,
                 status: responseJson.data.orderStatus,
-                image: responseJson.data.image,
                 totalProductInOrder: responseJson.data.totalProductInOrder,
                 phoneNumber: responseJson.data.phoneNumber,
                 saleStaff: responseJson.data.saleStaff,
@@ -155,7 +154,7 @@ const OrderDetail: React.FC = (props) => {
                                 <List.Item>
                                     <List.Item.Meta
                                         avatar={<Avatar style={{width: '55px', height: '55px'}} shape="square"
-                                                        size="large" src={details?.image}/>}
+                                                        size="large" src={item.image}/>}
                                         title={<span style={{fontSize: '17px'}}>{item.productName}</span>}
                                         description={
                                             <div>
@@ -180,12 +179,6 @@ const OrderDetail: React.FC = (props) => {
                             </Descriptions.Item>
                             <Descriptions.Item label="Shipping Cost" style={{ fontSize: '16px' }}>
                                 Free
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Discount" style={{ fontSize: '16px' }}>
-                                -$0
-                            </Descriptions.Item>
-                            <Descriptions.Item label="Tax" style={{ fontSize: '16px' }}>
-                                $18%
                             </Descriptions.Item>
                             <Descriptions.Item label="Total" style={{ fontWeight: 'bold', fontSize: '20px', color: 'red' }}>
                                 ${details?.totalAmount.toFixed(2)}

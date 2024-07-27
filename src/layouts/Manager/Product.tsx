@@ -2,9 +2,14 @@ import React, {useEffect, useState} from "react";
 import {SpinnerLoading} from "../Utils/SpinnerLoading";
 import {AddProduct} from "./component/AddProduct";
 import {UpdateProduct} from "./component/UpdateProduct";
-import {Button, Image, message, Table, Pagination} from "antd";
+import {Button, Image, message, Pagination, Table} from "antd";
 import ProductModel from "../../models/ProductModel";
+import {EditOutlined} from "@ant-design/icons";
 
+const token = localStorage.getItem('token');
+const headers = {
+    'Authorization': `Bearer ${token}`
+}
 
 interface ProductData {
     productId: number;
@@ -45,8 +50,6 @@ export const Product = () => {
     const [searchCategory, setSearchCategory] = useState('All Category');
     const [isAddingNew, setIsAddingNew] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
-    const [diamonds, setDiamonds] = useState<Diamond[]>([]);
-    const [product, setProduct] = useState<ProductModel>();
     const [formData, setFormData] = useState<ProductData>({
         productId: 0,
         collection: '',
@@ -92,8 +95,7 @@ export const Product = () => {
                 const responseData = responseJson.content;
                 setTotalAmountOfProducts(responseJson.totalElements);
                 setTotalPages(responseJson.totalPages);
-
-
+                console.log(responseData)
                 const loadedProducts: ProductModel[] = [];
 
                 for (const key in responseData) {
@@ -127,8 +129,7 @@ export const Product = () => {
             setIsLoading(false);
             setHttpError(error.message);
         });
-
-    }, [currentPage, searchUrl]);
+    }, [currentPage, searchUrl, isUpdating]);
 
 
     if (isLoading) {
@@ -165,7 +166,7 @@ export const Product = () => {
         });
         setIsAddingNew(!isAddingNew);
     }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     const toggleUpdateModal = () => {
         setFormData({
             productId: 0,
@@ -186,14 +187,15 @@ export const Product = () => {
         });
         setIsUpdating(false)
     }
+
     const handleToEdit = (e: React.FormEvent, record: ProductModel) => {
         const productToEdit = products.find(product => product.productId === record.productId);
         if (productToEdit) {
             setFormData(productToEdit);
             setIsUpdating(!isUpdating);
         }
-
     }
+
     const handleUpdate = async (e: React.FormEvent, product: ProductModel) => {
         e.preventDefault();
         try {
@@ -228,7 +230,6 @@ export const Product = () => {
                 setIsAddingNew(false);
                 message.success('Product update successfully');
                 setIsUpdating(false)
-
             } else {
                 message.error('Failed to update product');
                 console.log(requestBody)
@@ -336,33 +337,19 @@ export const Product = () => {
         setCurrentPage(page);
     };
 
-    const handleDelete = async (record: ProductModel) => {
-        console.log("Product ID: ", record.productId);
-        if (record) {
-            const body = {
-                id: record.productId
-            }
-            const response = await fetch(`https://deploy-be-b176a8ceb318.herokuapp.com/product/delete?id=${record.productId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${headers}`
-                },
-            });
-            if (response.ok) {
-                message.success('Product deleted successfully')
-                setProducts(products.filter(product => product.productId !== record.productId));
-            } else {
-                message.error('Fail to delete product')
-            }
-        }
-    };
 
     const columns = [
+        {
+            title: 'ID',
+            dataIndex: 'productId',
+            key: 'productId',
+            className: 'text-center',
+        },
         {
             title: 'Image',
             dataIndex: 'image1',
             key: 'image1',
+            className: 'text-center',
             render: (text: string) => (
                 <Image
                     width={100}
@@ -375,19 +362,22 @@ export const Product = () => {
             title: 'Product Name',
             dataIndex: 'productName',
             key: 'productName',
+            className: 'text-center',
         },
         {
             title: 'Price',
             dataIndex: 'price',
             key: 'price',
+            className: 'text-center',
             render: (text: number) => (
-                <span style={{fontWeight: 'bolder'}}>${text}</span>
+                <span style={{fontWeight: 'bolder'}}>${text.toLocaleString()}</span>
             ),
         },
         {
             title: 'Description',
             dataIndex: 'description',
             key: 'description',
+            className: 'text-center',
             render: (text: string) => (
                 <span style={{textAlign: 'center'}}>{text}</span>
             ),
@@ -396,6 +386,7 @@ export const Product = () => {
             title: 'Quantity',
             dataIndex: 'stockQuantity',
             key: 'stockQuantity',
+            className: 'text-center',
             render: (text: number) => (
                 <span>{text}</span>
             ),
@@ -403,16 +394,12 @@ export const Product = () => {
         {
             title: 'Actions',
             key: 'actions',
-            render: (text: string, record: ProductModel) => (
+            render: (record: ProductModel) => (
                 <>
-                    <Button type="primary" onClick={() => handleDelete(record)} danger>
-                        Delete
-                    </Button>
-                    <Button type="primary" onClick={(event) => handleToEdit(event, record)} danger>
-                        Update
+                    <Button onClick={(event) => handleToEdit(event, record)}>
+                        <EditOutlined/>
                     </Button>
                 </>
-
 
             ),
         },
@@ -420,13 +407,7 @@ export const Product = () => {
     return (
         <div>
             <div className='container'>
-                <div className="mb-4 d-flex justify-content-between align-items-center">
-                    <h2 className="text-dark">Product</h2>
-                    <button onClick={() => setIsAddingNew(true)} className="btn btn-primary">
-                        New Product
-                    </button>
-                </div>
-                <div className='row mt-5 ms-4'>
+                <div className='row ms-4'>
                     <div style={{width: '300px'}} className='col-6'>
                         <div
                             className='d-flex'>
@@ -442,9 +423,10 @@ export const Product = () => {
                         </div>
 
                     </div>
-                    <div className='col-4'>
+                    <div className='col-4 mb-3'>
                         <div className='dropdown'>
-                            <button className='btn btn-outline-dark dropdown-toggle' type='button'
+                            <button style={{borderRadius: '0'}} className='btn btn-outline-dark dropdown-toggle'
+                                    type='button'
                                     id='dropdownMenuButton1' data-bs-toggle='dropdown' aria-expanded='false'
                             >
                                 {searchCategory}
@@ -493,10 +475,15 @@ export const Product = () => {
                         </div>
                     </div>
 
+                    <h2 style={{fontSize: 45}} className="custom-heading text-center mt-2">Product Management</h2>
+
+                    <button style={{width: 150, marginLeft: 20, borderRadius: '0'}} onClick={() => setIsAddingNew(true)}
+                            className="btn btn-outline-success">
+                        New Product
+                    </button>
                     {totalAmountOfProducts > 0 ?
                         <>
-                            <Table className="mt-5" dataSource={products} columns={columns} rowKey="productId"
-
+                            <Table dataSource={products} columns={columns} rowKey="productId"
                                    pagination={false}/>
                             <Pagination
                                 current={currentPage}

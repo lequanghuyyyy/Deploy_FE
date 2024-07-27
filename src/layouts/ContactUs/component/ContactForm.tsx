@@ -1,47 +1,7 @@
-import React, {useState} from 'react';
+import React from 'react';
 import './ContactForm.css';
-import {message} from "antd";
 
 const ContactForm: React.FC = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-    });
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const {name, value} = e.target;
-        setFormData(prevState => ({...prevState, [name]: value}));
-    };
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('https://deploy-be-b176a8ceb318.herokuapp.com/home/contact', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-
-            if (response.ok) {
-                message.success("Message sent successfully ")
-            }
-
-            setFormData({
-                name: '',
-                email: '',
-                subject: '',
-                message: ''
-            });
-
-        } catch (error) {
-            console.error('Error:', error);
-            alert('There was an error sending your message.');
-        }
-    };
     return (
         <div className="contact-form-container">
             <div className="contact-info-section">
@@ -85,7 +45,7 @@ const ContactForm: React.FC = () => {
                     </div>
                 </div>
                 <div className="follow-us">
-                    <p>Follow Us</p>
+                <p>Follow Us</p>
                     <div className="social-icons">
                         <a href="#">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
@@ -123,29 +83,16 @@ const ContactForm: React.FC = () => {
                     <div className="contact-title mb-30">
                         <h2>Get In Touch</h2>
                     </div>
-                    <form className="form-group" onSubmit={handleSubmit}>
+                    <form className="form-group">
                         <div className="row">
                             <div className="col-lg-6 form-group">
-                                <input
-                                    value={formData.name}
-                                    name="name"
-                                    placeholder="Name*"
-                                    type="text"
-                                    onChange={handleChange}
-                                />
+                                <input name="name" placeholder="Name*" type="text" />
                             </div>
                             <div className="col-lg-6 form-group">
-                                <input
-                                    value={formData.email}
-                                    name="email"
-                                    placeholder="Email*"
-                                    type="email"
-                                    onChange={handleChange}/>
+                                <input name="email" placeholder="Email*" type="email" />
                             </div>
                             <div className="col-lg-12 form-group">
                                 <input
-                                    value={formData.subject}
-                                    onChange={handleChange}
                                     name="subject"
                                     placeholder="Subject*"
                                     type="text"
@@ -153,11 +100,9 @@ const ContactForm: React.FC = () => {
                             </div>
                             <div className="col-lg-12 form-group">
                         <textarea
-                            value={formData.message}
                             name="message"
                             placeholder="Your Message*"
                             defaultValue={""}
-                            onChange={handleChange}
                         />
                                 <button className='send-button' type="submit">
                                     SEND
@@ -165,7 +110,7 @@ const ContactForm: React.FC = () => {
                             </div>
                         </div>
                     </form>
-                    <p className="form-messege"/>
+                    <p className="form-messege" />
                 </div>
             </div>
         </div>

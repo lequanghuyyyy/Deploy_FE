@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react";
 import uploadFile from '../../../firebase/uploadFile';
 import ProductModel from "../../../models/ProductModel";
 import productModel from "../../../models/ProductModel";
-import DiamondModel from "../../../models/DiamondModel"; // Path to your uploadFile function
+import DiamondModel from "../../../models/DiamondModel";
 
 const token = localStorage.getItem('token');
 const headers = {
@@ -36,18 +36,10 @@ interface AddProductProps {
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const AddProduct: React.FC<AddProductProps> = ({
-                                                          isOpen,
-                                                          onClose,
-                                                          onSubmit,
-                                                          formData,
-                                                          handleChange,
-                                                          handleFileChange,
-                                                      }) => {
+export const AddProduct: React.FC<AddProductProps> = ({isOpen, onClose, onSubmit, formData, handleChange, handleFileChange}) => {
     const [diamonds, setDiamonds] = useState<DiamondModel[]>([]);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         try {
             const image1URL = formData.image1 instanceof File ? await uploadFile(formData.image1) : formData.image1;
             const image2URL = formData.image2 instanceof File ? await uploadFile(formData.image2) : formData.image2;
@@ -83,7 +75,7 @@ export const AddProduct: React.FC<AddProductProps> = ({
 
     useEffect(() => {
         const fetchOrders = async () => {
-            const baseUrl: string = "https://deploy-be-b176a8ceb318.herokuapp.com/manager/diamond";
+            const baseUrl: string = "https://deploy-be-b176a8ceb318.herokuapp.com/manager/diamond?productId=0";
             const url: string = `${baseUrl}`;
             const response = await fetch(url, {headers: headers});
             if (!response.ok) {
@@ -111,6 +103,14 @@ export const AddProduct: React.FC<AddProductProps> = ({
             console.log(error);
         })
     }, []);
+
+    const validateNoWhitespace = (_: any, value: any) => {
+        if (!value || value.trim() !== "") {
+            return Promise.resolve();
+        }
+        return Promise.reject('Input cannot be only whitespace');
+    };
+
     return (
         <div
             className={`modal ${isOpen ? 'show' : ''}`}
@@ -136,7 +136,6 @@ export const AddProduct: React.FC<AddProductProps> = ({
                                         value={formData.productName}
                                         onChange={handleChange}
                                         className="form-control"
-                                        required
                                     />
                                 </div>
                                 <div className="mb-3">
@@ -168,8 +167,10 @@ export const AddProduct: React.FC<AddProductProps> = ({
                                         id="diamondId"
                                         name="diamondId"
                                         className="form-select"
-                                        value={formData.diamondId}
-                                        onChange={handleChange}>
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="" defaultChecked>Choose Diamond..</option>
                                         {diamonds.map((diamond) => (
                                             <option key={diamond.diamondId} value={diamond.diamondId}>
                                                 {`ID: ${diamond.diamondId}, Carat: ${diamond.carat}, Price: ${diamond.price}, Cut: ${diamond.cut}, Color: ${diamond.color}, Clarity: ${diamond.clarity}, Certification: ${diamond.certification}, Product ID: ${diamond.productId}, Status: ${diamond.status}`}
@@ -188,8 +189,9 @@ export const AddProduct: React.FC<AddProductProps> = ({
                                         className="form-select"
                                         value={formData.categoryId}
                                         onChange={handleChange}
+                                        required
                                     >
-                                        <option value="" disabled>Select Category</option>
+                                        <option value="" defaultChecked>Select Category</option>
                                         <option value="1">Engagement Rings</option>
                                         <option value="2">Wedding Bands</option>
                                         <option value="3">Men Diamond Ring</option>
@@ -207,8 +209,9 @@ export const AddProduct: React.FC<AddProductProps> = ({
                                         className="form-select"
                                         value={formData.shellId}
                                         onChange={handleChange}
+                                        required
                                     >
-                                        <option value="" disabled>Select Shell</option>
+                                        <option value="" defaultChecked>Select Shell</option>
                                         <option value="1">Twist</option>
                                         <option value="13">Vintage-Inspired</option>
                                         <option value="3">Solitaire</option>
