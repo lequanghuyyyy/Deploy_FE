@@ -33,14 +33,7 @@ interface AddProductProps {
     handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export const UpdateProduct: React.FC<AddProductProps> = ({
-                                                             isOpen,
-                                                             onClose,
-                                                             onSubmit,
-                                                             formData,
-                                                             handleChange,
-                                                             handleFileChange,
-                                                         }) => {
+export const UpdateProduct: React.FC<AddProductProps> = ({isOpen, onClose, onSubmit, formData, handleChange, handleFileChange,}) => {
     const [diamonds, setDiamonds] = useState<DiamondModel[]>([]);
     const [image1, setImage1] = useState<string>('');
     const [image2, setImage2] = useState<string>('');
@@ -85,7 +78,6 @@ export const UpdateProduct: React.FC<AddProductProps> = ({
                 image3URL ?? "",
                 image4URL ?? "",
                 formData.categoryId,
-                // diamonds.length > 0 ? diamonds[0].diamondId : 0,
                 formData.diamondId,
                 formData.shellId,
                 certificateImage,
@@ -99,42 +91,42 @@ export const UpdateProduct: React.FC<AddProductProps> = ({
     };
 
 
-    useEffect(() => {
-        if (formData.productId) {
-            const fetchDiamonds = async () => {
-                const baseUrl: string = `https://deploy-be-b176a8ceb318.herokuapp.com/manager/diamond?productId=${formData.productId}`;
+        useEffect(() => {
+            if (formData.productId) {
+                const fetchDiamonds = async () => {
+                    const baseUrl: string = `https://deploy-be-b176a8ceb318.herokuapp.com/manager/diamond?productId=${formData.productId}`;
 
-                const response = await fetch(baseUrl, {headers: headers});
-                if (!response.ok) {
-                    throw new Error('Something went wrong!');
-                }
-                const responseJson = await response.json();
+                    const response = await fetch(baseUrl, {headers: headers});
+                    if (!response.ok) {
+                        throw new Error('Something went wrong!');
+                    }
+                    const responseJson = await response.json();
 
-                const responseData = responseJson.data;
-                const loadedDiamonds: DiamondModel[] = [];
-                for (const key in responseData) {
-                    loadedDiamonds.push({
-                        diamondId: responseData[key].diamondId,
-                        carat: responseData[key].carat,
-                        price: responseData[key].price,
-                        cut: responseData[key].cut,
-                        color: responseData[key].color,
-                        clarity: responseData[key].clarity,
-                        certification: responseData[key].certification,
-                        productId: responseData[key].productId,
-                        status: responseData[key].status,
-                    });
-                }
-                setDiamonds(loadedDiamonds);
-            };
-            fetchDiamonds().catch((error: any) => {
-                console.log(error);
-            });
-        }
-    }, [formData.productId]);
+                    const responseData = responseJson.data;
+                    const loadedDiamonds: DiamondModel[] = [];
+                    for (const key in responseData) {
+                        loadedDiamonds.push({
+                            diamondId: responseData[key].diamondId,
+                            carat: responseData[key].carat,
+                            price: responseData[key].price,
+                            cut: responseData[key].cut,
+                            color: responseData[key].color,
+                            clarity: responseData[key].clarity,
+                            certification: responseData[key].certification,
+                            productId: responseData[key].productId,
+                            status: responseData[key].status,
+                        });
+                    }
+                    setDiamonds(loadedDiamonds);
+                };
+                fetchDiamonds().catch((error: any) => {
+                    console.log(error);
+                });
+            }
+        }, [formData.productId]);
 
 
-    return (
+        return (
         <div
             className={`modal ${isOpen ? 'show' : ''}`}
             style={{display: isOpen ? 'block' : 'none', backgroundColor: 'rgba(0, 0, 0, 0.5)'}}
@@ -194,8 +186,7 @@ export const UpdateProduct: React.FC<AddProductProps> = ({
                                         value={formData.diamondId}
                                         onChange={handleChange}>
                                         {diamonds.map((diamond, index) => (
-                                            <option key={diamond.diamondId} value={diamond.diamondId}
-                                                    selected={index === 0}>
+                                            <option key={diamond.diamondId} value={diamond.diamondId} selected={index === 0} >
                                                 {`ID: ${diamond.diamondId}, Carat: ${diamond.carat}, Cut: ${diamond.cut}, Color: ${diamond.color}, Clarity: ${diamond.clarity}`}
                                             </option>
                                         ))}

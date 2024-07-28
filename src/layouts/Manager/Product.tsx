@@ -29,15 +29,6 @@ interface ProductData {
     certificateImage: string,
 }
 
-interface Diamond {
-    diamondId: number;
-    name: string;
-    carat: number;
-    color: string;
-    clarity: string;
-    cut: string;
-}
-
 export const Product = () => {
     const [products, setProducts] = useState<ProductModel[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -95,7 +86,9 @@ export const Product = () => {
                 const responseData = responseJson.content;
                 setTotalAmountOfProducts(responseJson.totalElements);
                 setTotalPages(responseJson.totalPages);
+                console.log(responseData)
                 const loadedProducts: ProductModel[] = [];
+
                 for (const key in responseData) {
                     loadedProducts.push({
                         productId: responseData[key].productId,
@@ -188,8 +181,6 @@ export const Product = () => {
 
     const handleToEdit = (e: React.FormEvent, record: ProductModel) => {
         const productToEdit = products.find(product => product.productId === record.productId);
-        console.log(productToEdit)
-
         if (productToEdit) {
             setFormData(productToEdit);
             setIsUpdating(!isUpdating);
@@ -198,7 +189,6 @@ export const Product = () => {
 
     const handleUpdate = async (e: React.FormEvent, product: ProductModel) => {
         e.preventDefault();
-        console.log(product)
         try {
             const requestBody = {
                 productId: product.productId,
@@ -332,7 +322,6 @@ export const Product = () => {
             ...prevFormData,
             [name]: value,
         }));
-        console.log(name + ":" + value)
     };
 
     const handlePageChange = (page: number) => {
