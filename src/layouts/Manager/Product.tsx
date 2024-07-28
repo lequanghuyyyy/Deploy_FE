@@ -95,9 +95,7 @@ export const Product = () => {
                 const responseData = responseJson.content;
                 setTotalAmountOfProducts(responseJson.totalElements);
                 setTotalPages(responseJson.totalPages);
-                console.log(responseData)
                 const loadedProducts: ProductModel[] = [];
-
                 for (const key in responseData) {
                     loadedProducts.push({
                         productId: responseData[key].productId,
@@ -111,7 +109,7 @@ export const Product = () => {
                         image3: responseData[key].image3,
                         image4: responseData[key].image4,
                         categoryId: responseData[key].categoryId,
-                        diamondId: responseData[key].diamondId,
+                        diamondId: responseData[key].diamonds[0].diamondId,
                         shellId: responseData[key].shellId,
                         certificateImage: responseData[key].certificateImage,
                         warrantyImage: responseData[key].warrantyImage,
@@ -190,6 +188,8 @@ export const Product = () => {
 
     const handleToEdit = (e: React.FormEvent, record: ProductModel) => {
         const productToEdit = products.find(product => product.productId === record.productId);
+        console.log(productToEdit)
+
         if (productToEdit) {
             setFormData(productToEdit);
             setIsUpdating(!isUpdating);
@@ -198,6 +198,7 @@ export const Product = () => {
 
     const handleUpdate = async (e: React.FormEvent, product: ProductModel) => {
         e.preventDefault();
+        console.log(product)
         try {
             const requestBody = {
                 productId: product.productId,
@@ -331,6 +332,7 @@ export const Product = () => {
             ...prevFormData,
             [name]: value,
         }));
+        console.log(name + ":" + value)
     };
 
     const handlePageChange = (page: number) => {
