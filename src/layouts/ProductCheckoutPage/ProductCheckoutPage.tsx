@@ -7,7 +7,7 @@ import SizeModel from "../../models/SizeModel";
 import Carousel from "react-multi-carousel";
 import {SimilarItems} from "./component/SimilarItems";
 import {Button, message, Modal} from "antd";
-import ExpandableFeature from "../Utils/ExpandableFeature";
+
 import ExpandInformation from "./component/ExpandInformation";
 
 export const ProductCheckoutPage = () => {
@@ -126,6 +126,7 @@ export const ProductCheckoutPage = () => {
     useEffect(() => {
         fetchSize();
     }, [product]);
+
     const fetchSize = async () => {
         if (!product || !product.categoryId) return;
         const baseUrl: string = `https://deploy-be-b176a8ceb318.herokuapp.com/sizes/${product?.categoryId}`;
@@ -156,6 +157,9 @@ export const ProductCheckoutPage = () => {
     })
 
     const checkIfInCart = () => {
+        if (!localStorage.getItem('cart')) {
+            localStorage.setItem('cart', JSON.stringify([]));
+        }
         const cart = JSON.parse(localStorage.getItem("cart")!);
         return cart.some((item: any) => item.productId === productId);
     };
@@ -219,7 +223,6 @@ export const ProductCheckoutPage = () => {
         console.log(selectedSize)
     };
 
-
     const responsive = {
         superLargeDesktop: {
             breakpoint: {max: 4000, min: 3000},
@@ -240,7 +243,7 @@ export const ProductCheckoutPage = () => {
     }
 
     return (
-        <div style={{ marginTop: '200px', marginBottom: '80px'}} className="container">
+        <div style={{marginTop: '200px', marginBottom: '80px'}} className="container">
             <div className="container d-none d-lg-block w-1000">
                 <div className="row mt-5">
                     <div className="col-sm-2 col-md-6 text-center">
@@ -310,10 +313,10 @@ export const ProductCheckoutPage = () => {
                                     Size Guide
                                 </Button>
                             </div>
-                            <ExpandInformation title='More Information' content= {
+                            <ExpandInformation title='More Information' content={
                                 <>
-                                <DiamondTable product={product}/>
-                                <ShellTable product={product}/>
+                                    <DiamondTable product={product}/>
+                                    <ShellTable product={product}/>
                                 </>
                             }/>
 
@@ -376,21 +379,21 @@ export const ProductCheckoutPage = () => {
                                 onCancel={handleCancel}
                                 width={800}
                             >
-                                <img src={imageUrl} alt="Example" style={{ width: '100%' }} />
+                                <img src={imageUrl} alt="Example" style={{width: '100%'}}/>
                             </Modal>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="container mt-5" style={{ height: 550 }}>
+            <div className="container mt-5" style={{height: 550}}>
                 <div className="homepage-carousel-title">
-                    <h1 style={{ fontSize: '45px', marginBottom: '0' }} className="custom-heading">
+                    <h1 style={{fontSize: '45px', marginBottom: '0'}} className="custom-heading">
                         Similar Items
                     </h1>
                 </div>
                 <Carousel responsive={responsive} className="mt-5">
                     {suggest.slice(0, 4).map((prod) => (
-                        <SimilarItems key={prod.productId} product={prod} />
+                        <SimilarItems key={prod.productId} product={prod}/>
                     ))}
                 </Carousel>
             </div>

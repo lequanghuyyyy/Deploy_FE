@@ -4,6 +4,7 @@ import {Badge, Button, Dropdown, Form, Input, Menu, message, Modal, Table} from 
 import AddAccount from "./AddAccount";
 import UpdateAccount from "./UpdateAccount";
 import {UserAddOutlined, UserOutlined} from "@ant-design/icons";
+import account from "../MyAccount/Account";
 
 const headers = localStorage.getItem('token');
 
@@ -32,6 +33,7 @@ export const AccountTable: React.FC = () => {
         setFormData({
             userid: '', name: '', email: '', password: '', phoneNumber: '', address: '', role: '', status: ''
         });
+        console.log(formData)
         setIsAddingNew(!isAddingNew);
     };
 
@@ -78,6 +80,7 @@ export const AccountTable: React.FC = () => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
         const {name, value} = e.target;
         setFormData({...formData, [name]: value});
+        console.log(name + ":" + value)
     };
 
     const handleStatusChange = (checked: boolean) => {
@@ -92,12 +95,15 @@ export const AccountTable: React.FC = () => {
                     'Authorization': `Bearer ${headers}`
                 },
             });
+
             if (!response.ok) {
                 throw new Error('Failed to fetch accounts data');
             }
-            const result = await response.json();
 
-            const isDuplicate = result.content.some((account: any) => {
+            const result = await response.json();
+            const content = result.content;
+
+            const isDuplicate = content.some((account: any) => {
                 return account.email === formData.email || account.phoneNumber === formData.phoneNumber;
             });
 
@@ -119,17 +125,21 @@ export const AccountTable: React.FC = () => {
                     'Authorization': `Bearer ${headers}`
                 }
             });
+            console.log(formData)
 
             if (postResponse.ok) {
                 fetchRole();
                 setIsAddingNew(false);
             } else {
+                const postResult = await postResponse.json();
+                console.error('Failed to add new account: ', postResult);
                 throw new Error('Failed to add new account');
             }
         } catch (error) {
             console.error('Error handling submit: ', error);
         }
     };
+
 
     const handleEdit = (userid: string, e: React.FormEvent) => {
         setIsUpdating(true);

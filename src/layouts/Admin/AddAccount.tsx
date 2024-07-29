@@ -1,5 +1,5 @@
 import React from 'react';
-import {Modal, Form, Input, Select, Radio, Button} from 'antd';
+import { Form, Input, Select, Radio, Button} from 'antd';
 
 const {Option} = Select;
 
@@ -62,6 +62,7 @@ const AddAccount: React.FC<AddAccountProps> = ({isOpen, onClose, onSubmit, formD
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Name"
+                    name="name"
                 />
             </Form.Item>
             <Form.Item
@@ -76,6 +77,7 @@ const AddAccount: React.FC<AddAccountProps> = ({isOpen, onClose, onSubmit, formD
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Password"
+                    name="password"
                 />
             </Form.Item>
             <Form.Item
@@ -89,9 +91,9 @@ const AddAccount: React.FC<AddAccountProps> = ({isOpen, onClose, onSubmit, formD
                 ]}
             >
                 <Input
-                    value={formData.phoneNumber}
                     onChange={handleChange}
                     placeholder="Phone Number"
+                    name="phoneNumber"
                 />
             </Form.Item>
             <Form.Item
@@ -107,6 +109,7 @@ const AddAccount: React.FC<AddAccountProps> = ({isOpen, onClose, onSubmit, formD
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="Email"
+                    name="email"
                 />
             </Form.Item>
             <Form.Item
@@ -121,6 +124,7 @@ const AddAccount: React.FC<AddAccountProps> = ({isOpen, onClose, onSubmit, formD
                     value={formData.address}
                     onChange={handleChange}
                     placeholder="Address"
+                    name="address"
                 />
             </Form.Item>
             <Form.Item
@@ -152,6 +156,7 @@ const AddAccount: React.FC<AddAccountProps> = ({isOpen, onClose, onSubmit, formD
                 <Radio.Group
                     value={formData.status}
                     onChange={handleChange as any}
+                    name="status"
                 >
                     <Radio value='true'>Active</Radio>
                     <Radio value='false'>Suspended</Radio>
